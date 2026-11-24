@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>牡丹亭 · 一场可游的梦</title>
+<meta name="description" content="以汤显祖《牡丹亭》为灵感的互动叙事游戏：游园、惊梦、寻梦、拾画、还魂。">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body class="font-md">
+
+<!-- 载入 -->
+<div id="loader" aria-hidden="true">
+  <div class="loader-seal">夢</div>
+  <div class="loader-line"></div>
+</div>
+
+<!-- 开始界面 -->
+<section id="start" aria-label="开始界面">
+  <div class="start-bg" style="background-image:url('assets/img/scene_night.jpg')"></div>
+  <div class="start-wash"></div>
+  <div class="start-inner">
+    <div class="start-eyebrow">临川四梦 · 其一</div>
+    <h1 class="start-logo"><img src="assets/img/logo.jpg" alt="牡丹亭"></h1>
+    <p class="start-sub">一场可游的梦</p>
+    <p class="start-quote">情不知所起，一往而深。<span class="src">——汤显祖《牡丹亭》题词</span></p>
+    <div class="start-actions">
+      <button class="btn primary" id="btnStart">入 园</button>
+      <button class="btn" id="btnContinue" hidden>续 梦</button>
+      <button class="btn ghost" id="btnStartJournal">导 读</button>
+    </div>
+    <p class="start-note">改编自汤显祖《牡丹亭》· 非商业互动叙事习作<br>画面、音乐均为本作原创素材，曲词原文另行标注</p>
+  </div>
+  <div class="start-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+</section>
+
+<!-- 游戏主界面 -->
+<main id="game" hidden>
+  <div id="stage" class="scene-spring">
+    <div class="bg bg-a"></div>
+    <div class="bg bg-b"></div>
+    <canvas id="threeStage" aria-hidden="true"></canvas>
+    <div class="three-grain" aria-hidden="true"></div>
+    <div class="three-vignette" aria-hidden="true"></div>
+    <canvas id="fx" aria-hidden="true"></canvas>
+    <div class="lantern-mask" aria-hidden="true"></div>
+    <div class="stage-grade" aria-hidden="true"></div>
+
+    <div class="frame" aria-hidden="true">
+      <i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i>
+    </div>
+
+    <header class="hud">
+      <div class="chapter-mark">
+        <div class="seal" id="chapterNo">一</div>
+        <div class="chapter-text">
+          <span class="ch-label">第 <b id="chapterNum">一</b> 出</span>
+          <span class="ch-name" id="chapterName">游园</span>
+        </div>
+      </div>
+      <div class="hud-objective" id="objective" aria-live="polite"></div>
+      <nav class="hud-tools">
+        <button class="tool" id="btnGuide" title="导读（人物、曲词、典故）"><span>导</span></button>
+        <button class="tool" id="btnJournal" title="札记（J）"><span>记</span><em id="journalDot" hidden></em></button>
+        <button class="tool" id="btnSound" title="声音开关"><span id="soundGlyph">音</span></button>
+        <button class="tool" id="btnSettings" title="设置"><span>设</span></button>
+      </nav>
+    </header>
+
+    <div class="hotspots" id="hotspots" aria-label="可探索之处"></div>
+
+    <div class="scene-tag" id="sceneTag" aria-hidden="true">
+      <span class="tag-name"></span>
+      <span class="tag-en"></span>
+    </div>
+
+    <section id="dialogue" class="dialogue" hidden aria-live="polite">
+      <div class="dlg-inner">
+        <div class="dlg-portrait" id="portrait" aria-hidden="true">
+          <div class="portrait-inner"><img id="portraitImg" alt=""></div>
+        </div>
+        <div class="dlg-body">
+          <div class="dlg-head">
+            <span class="dlg-name" id="dlgName"></span>
+            <span class="dlg-role" id="dlgRole"></span>
+            <span class="dlg-src" id="dlgSrc"></span>
+          </div>
+          <p class="dlg-text" id="dlgText"></p>
+          <div class="dlg-choices" id="dlgChoices"></div>
+          <div class="dlg-foot">
+            <span class="dlg-hint" id="dlgHint">轻点继续</span>
+            <span class="dlg-caret" id="dlgCaret">▾</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+</main>
+
+<!-- 章回片头 -->
+<div id="chapterCard" class="chapter-card" hidden role="dialog" aria-modal="true" aria-labelledby="ccTitle">
+  <div class="cc-paper">
+    <div class="cc-no" id="ccNo">第一出</div>
+    <h2 class="cc-title" id="ccTitle">游园</h2>
+    <p class="cc-epi" id="ccEpi"></p>
+    <p class="cc-note" id="ccNote"></p>
+    <button class="btn primary" id="ccEnter">掀 帘</button>
+  </div>
+  <div class="cc-wash"></div>
+</div>
+
+<!-- 札记抽屉 -->
+<aside id="journal" class="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="journalTitle">
+  <div class="drawer-head">
+    <div>
+      <span class="drawer-kicker">花笺小记</span>
+      <h2 id="journalTitle">札记</h2>
+    </div>
+    <button class="icon-btn" id="journalClose" aria-label="关闭札记">×</button>
+  </div>
+  <nav class="tabs" id="journalTabs" role="tablist">
+    <button class="tab active" data-tab="image" role="tab">意象</button>
+    <button class="tab" data-tab="canon" role="tab">曲词</button>
+    <button class="tab" data-tab="person" role="tab">人物</button>
+    <button class="tab" data-tab="note" role="tab">札记</button>
+  </nav>
+  <div class="drawer-body" id="journalBody"></div>
+  <div class="drawer-foot"><span id="journalCount"></span><span class="muted">收集不设重复，错过的可在重游时补齐</span></div>
+</aside>
+
+<!-- 导读 -->
+<aside id="guide" class="drawer wide" hidden role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+  <div class="drawer-head">
+    <div>
+      <span class="drawer-kicker">不必先读过原著</span>
+      <h2 id="guideTitle">导读</h2>
+    </div>
+    <button class="icon-btn" id="guideClose" aria-label="关闭导读">×</button>
+  </div>
+  <nav class="tabs" id="guideTabs" role="tablist">
+    <button class="tab active" data-tab="story" role="tab">故事</button>
+    <button class="tab" data-tab="people" role="tab">人物</button>
+    <button class="tab" data-tab="lines" role="tab">曲词</button>
+    <button class="tab" data-tab="allusion" role="tab">典故</button>
+  </nav>
+  <div class="drawer-body" id="guideBody"></div>
+</aside>
+
+<!-- 设置 -->
+<div id="settings" class="modal settings-modal" hidden role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="modal-paper">
+    <div class="modal-head">
+      <h2 id="setTitle">设 置</h2>
+      <button class="icon-btn" id="settingsClose" aria-label="关闭设置">×</button>
+    </div>
+    <div class="set-row">
+      <label>文字大小</label>
+      <div class="seg" id="setFont">
+        <button data-v="sm">小</button><button data-v="md" class="on">中</button><button data-v="lg">大</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <label>音量 <b id="volVal">60</b></label>
+      <input type="range" id="setVolume" min="0" max="100" value="60">
+    </div>
+    <div class="set-row">
+      <label>减少动态与闪烁</label>
+      <button class="switch" id="setMotion" role="switch" aria-checked="false"><i></i></button>
+    </div>
+    <div class="set-row">
+      <label>线索提示</label>
+      <button class="switch on" id="setHints" role="switch" aria-checked="true"><i></i></button>
+    </div>
+    <div class="set-row">
+      <label>提灯照明（第四章）</label>
+      <button class="switch" id="setLamp" role="switch" aria-checked="false"><i></i></button>
+    </div>
+    <div class="set-actions">
+      <button class="btn ghost danger" id="setRestart">从头开始</button>
+      <button class="btn primary" id="settingsOk">好</button>
+    </div>
+    <p class="set-note">字幕始终开启；所有谜题均可跳过，跳过不会阻断主线。</p>
+  </div>
+</div>
+
+<!-- 谜题与演出容器 -->
+<div id="modalRoot"></div>
+
+<!-- 结局 -->
+<section id="ending" class="ending" hidden>
+  <div class="ending-bg"></div>
+  <div class="ending-inner">
+    <div class="ending-kicker" id="endingKicker">尾声</div>
+    <h2 id="endingTitle">人间春</h2>
+    <div class="ending-text" id="endingText"></div>
+    <p class="ending-quote">情不知所起，一往而深。<span class="src">——汤显祖《牡丹亭》题词</span></p>
+    <div class="ending-actions">
+      <button class="btn primary" id="endingJournal">翻看札记</button>
+      <button class="btn ghost" id="endingAgain">再走一遍</button>
+    </div>
+    <p class="ending-note">本作以《牡丹亭》为灵感改编，剧情对白与题画诗为游戏原创；标注「原文」者为汤显祖原文摘录。</p>
+  </div>
+</section>
+
+<div id="live" class="sr-only" aria-live="polite"></div>
+
+<script src="js/data.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/puzzles.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/three.min.js"></script>
+<script src="js/three-stage.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
